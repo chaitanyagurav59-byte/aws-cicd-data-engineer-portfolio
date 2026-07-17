@@ -1,0 +1,93 @@
+{
+    "pipeline": {
+        "name": "portfolio-cicd-pipeline",
+        "roleArn": "arn:aws:iam::843303282445:role/service-role/AWSCodePipelineServiceRole-ap-south-1-portfolio-cicd-pipeline",
+        "artifactStore": {
+            "type": "S3",
+            "location": "codepipeline-ap-south-1-a68c1cf8f3f3-470e-8074-12606542a80f"
+        },
+        "stages": [
+            {
+                "name": "Source",
+                "actions": [
+                    {
+                        "name": "Source",
+                        "actionTypeId": {
+                            "category": "Source",
+                            "owner": "AWS",
+                            "provider": "CodeStarSourceConnection",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "BranchName": "main",
+                            "ConnectionArn": "arn:aws:codeconnections:ap-south-1:843303282445:connection/308f8f4c-1d43-459e-b613-a0fa9ebb8349",
+                            "DetectChanges": "false",
+                            "FullRepositoryId": "chaitanyagurav59-byte/aws-cicd-data-engineer-portfolio",
+                            "OutputArtifactFormat": "CODE_ZIP"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [],
+                        "region": "ap-south-1",
+                        "namespace": "SourceVariables"
+                    }
+                ],
+                "onFailure": {
+                    "result": "RETRY",
+                    "retryConfiguration": {
+                        "retryMode": "ALL_ACTIONS"
+                    }
+                }
+            },
+            {
+                "name": "DeployPortfolio",
+                "actions": [
+                    {
+                        "name": "InvokePortfolioDeployer",
+                        "actionTypeId": {
+                            "category": "Invoke",
+                            "owner": "AWS",
+                            "provider": "Lambda",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "FunctionName": "portfolio-cicd-deployer"
+                        },
+                        "outputArtifacts": [],
+                        "inputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "region": "ap-south-1"
+                    }
+                ]
+            }
+        ],
+        "version": 2,
+        "executionMode": "QUEUED",
+        "pipelineType": "V2",
+        "triggers": [
+            {
+                "providerType": "CodeStarSourceConnection",
+                "gitConfiguration": {
+                    "sourceActionName": "Source",
+                    "push": [
+                        {
+                            "branches": {
+                                "includes": [
+                                    "main"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
